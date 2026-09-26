@@ -8,6 +8,7 @@ Pipeline: Saaras v3 (speech -> native transcript + English translation)
 import asyncio
 import base64
 import hashlib
+import hmac
 import secrets
 import io
 import json
@@ -30,7 +31,10 @@ load_dotenv(ROOT / ".env")
 API_KEY = os.environ.get("SARVAM_API_KEY", "")
 BASE = "https://api.sarvam.ai"
 HEADERS = {"api-subscription-key": API_KEY}
-DB_PATH = ROOT / "grievances.db"
+# Vercel's filesystem is read-only apart from /tmp, and /tmp is per-instance, so
+# data there is best-effort. Sessions are signed cookies so logins survive anyway.
+DB_PATH = Path("/tmp/grievances.db") if os.environ.get("VERCEL") else ROOT / "grievances.db"
+SECRET = (os.environ.get("SESSION_SECRET") or hashlib.sha256(f"sunwai:{API_KEY}".encode()).hexdigest()).encode()
 
 # Bulbul v3 voices only cover these; anything else is read back in English.
 TTS_LANGS = {"hi-IN", "bn-IN", "ta-IN", "te-IN", "gu-IN", "kn-IN", "ml-IN", "mr-IN", "pa-IN", "od-IN", "en-IN"}
@@ -56,7 +60,6 @@ def db():
 
 with db() as conn:
     conn.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, name TEXT, pw TEXT)")
-    conn.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER)")
     conn.execute(
         """CREATE TABLE IF NOT EXISTS grievances (
             id TEXT PRIMARY KEY,
@@ -97,27 +100,34 @@ def hash_pw(pw: str, salt: str | None = None) -> str:
 
 
 def check_pw(pw: str, stored: str) -> bool:
+    if "$" not in stored:
+        return False
     salt = stored.split("$", 1)[0]
     return secrets.compare_digest(hash_pw(pw, salt), stored)
 
 
+def sign(payload: str) -> str:
+    return hmac.new(SECRET, payload.encode(), hashlib.sha256).hexdigest()
+
+
 def current_user(request: Request) -> dict:
-    token = request.cookies.get(COOKIE)
-    with db() as conn:
-        row = conn.execute(
-            "SELECT u.id, u.email, u.name FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token=?",
-            (token or "",),
-        ).fetchone()
-    if not row:
+    token = request.cookies.get(COOKIE, "")
+    payload, _, sig = token.rpartition(".")
+    if not payload or not hmac.compare_digest(sign(payload), sig):
         raise HTTPException(401, "Please log in")
-    return dict(row)
-
-
-def start_session(response: Response, user_id: int) -> None:
-    token = secrets.token_urlsafe(32)
+    info = json.loads(base64.urlsafe_b64decode(payload.encode()).decode())
     with db() as conn:
-        conn.execute("INSERT INTO sessions VALUES (?,?)", (token, user_id))
-    response.set_cookie(COOKIE, token, httponly=True, samesite="lax", max_age=60 * 60 * 24 * 30)
+        row = conn.execute("SELECT id FROM users WHERE email=?", (info["email"],)).fetchone()
+        uid = row["id"] if row else conn.execute(
+            "INSERT INTO users (email, name, pw) VALUES (?,?,?)", (info["email"], info["name"], "!")
+        ).lastrowid
+    return {"id": uid, "email": info["email"], "name": info["name"]}
+
+
+def start_session(response: Response, email: str, name: str) -> None:
+    payload = base64.urlsafe_b64encode(json.dumps({"email": email, "name": name}).encode()).decode()
+    response.set_cookie(COOKIE, f"{payload}.{sign(payload)}", httponly=True, samesite="lax",
+                        max_age=60 * 60 * 24 * 30)
 
 
 class AuthIn(BaseModel):
@@ -131,43 +141,34 @@ def signup(body: AuthIn, response: Response):
     email = body.email.strip().lower()
     if "@" not in email or len(body.password) < 6:
         raise HTTPException(400, "Use a valid email and a password of at least 6 characters.")
+    name = body.name.strip() or email.split("@")[0]
     try:
         with db() as conn:
-            cur = conn.execute(
-                "INSERT INTO users (email, name, pw) VALUES (?,?,?)",
-                (email, body.name.strip() or email.split("@")[0], hash_pw(body.password)),
-            )
+            conn.execute("INSERT INTO users (email, name, pw) VALUES (?,?,?)", (email, name, hash_pw(body.password)))
     except sqlite3.IntegrityError:
         raise HTTPException(409, "An account with this email already exists.")
-    start_session(response, cur.lastrowid)
+    start_session(response, email, name)
     return {"ok": True}
 
 
 @app.post("/api/login")
 def login(body: AuthIn, response: Response):
     with db() as conn:
-        row = conn.execute("SELECT id, pw FROM users WHERE email=?", (body.email.strip().lower(),)).fetchone()
+        row = conn.execute("SELECT email, name, pw FROM users WHERE email=?", (body.email.strip().lower(),)).fetchone()
     if not row or not check_pw(body.password, row["pw"]):
         raise HTTPException(401, "Wrong email or password.")
-    start_session(response, row["id"])
+    start_session(response, row["email"], row["name"])
     return {"ok": True}
 
 
 @app.post("/api/demo")
 def demo(response: Response):
-    with db() as conn:
-        row = conn.execute("SELECT id FROM users WHERE email=?", (DEMO_EMAIL,)).fetchone()
-        uid = row["id"] if row else conn.execute(
-            "INSERT INTO users (email, name, pw) VALUES (?,?,?)", (DEMO_EMAIL, "Demo citizen", "!")
-        ).lastrowid
-    start_session(response, uid)
+    start_session(response, DEMO_EMAIL, "Demo citizen")
     return {"ok": True}
 
 
 @app.post("/api/logout")
-def logout(request: Request, response: Response):
-    with db() as conn:
-        conn.execute("DELETE FROM sessions WHERE token=?", (request.cookies.get(COOKIE, ""),))
+def logout(response: Response):
     response.delete_cookie(COOKIE)
     return {"ok": True}
 
