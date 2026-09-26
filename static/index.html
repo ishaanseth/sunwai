@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunwai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz@9..40&family=Noto+Sans+Devanagari&family=Noto+Sans+Bengali&family=Noto+Sans+Tamil&family=Noto+Sans+Telugu&family=Noto+Sans+Kannada&family=Noto+Sans+Malayalam&family=Noto+Sans+Gujarati&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #17181A; --ink-soft: #2A2B2E;
+  --sun: #FFE27A; --sun-deep: #FFC83A;      /* signature marigold */
+  --paper: #FDFDFD; --bone: #F3F3F1; --mist: #E8E9ED;
+  --muted: #7C7F87; --line: #17181A;
+  --ok: #2F7D4A; --warn: #C9860A; --high: #C0341D;
+  --gutter: 28px; --ease: cubic-bezier(.65,0,.35,1);
+  --font: "DM Sans", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", "Noto Sans Gujarati", system-ui, sans-serif;
+}
+@media (max-width: 600px) { :root { --gutter: 16px; } }
+* { box-sizing: border-box; border-radius: 0; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15px/1.4 var(--font); }
+button, input, textarea, select { font: inherit; color: inherit; font-weight: 400; }
+a { color: inherit; }
+.hidden { display: none !important; }
+.up { text-transform: uppercase; letter-spacing: .02em; }
+.muted { color: var(--muted); }
+
+/* ---------- header / nav */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px var(--gutter); background: var(--bone); min-height: 64px; position: sticky; top: 0; z-index: 20; flex-wrap: wrap; }
+.logo { font-size: 17px; letter-spacing: .08em; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.logo i { width: 12px; height: 12px; background: var(--sun-deep); display: inline-block; }
+.logo small { letter-spacing: 0; color: var(--muted); font-size: 14px; }
+nav { display: flex; gap: 8px; flex-wrap: wrap; }
+nav a { background: var(--ink); color: var(--paper); padding: 8px 12px; text-decoration: none; text-transform: uppercase; font-size: 14px; letter-spacing: .02em; }
+nav a.on { text-decoration: underline; text-underline-offset: 4px; }
+.banner { background: var(--sun); padding: 14px var(--gutter); display: flex; justify-content: space-between; gap: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .02em; }
+
+/* ---------- ribbed glass */
+.ribs { position: relative; isolation: isolate; overflow: hidden; background: var(--sun); }
+.ribs::before {
+  content: ""; position: absolute; inset: -24px; z-index: -1;
+  background-image:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / .55) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(90deg, var(--sun) 0 4px, var(--sun-deep) 4px 7px, var(--sun) 7px 9px);
+  filter: url(#ribs-idle);
+}
+.ribs.live::before { filter: url(#ribs-live); }
+@media (prefers-reduced-motion: reduce) { .ribs::before, .ribs.live::before { filter: none; } }
+
+/* ---------- type */
+.display { font-size: clamp(56px, 9vw, 140px); line-height: .95; letter-spacing: -.035em; margin: 0; }
+h2, .h2 { font-size: clamp(34px, 3.4vw, 52px); line-height: 1.05; letter-spacing: -.02em; margin: 0; font-weight: 400; }
+h3 { font-size: clamp(22px, 2vw, 30px); line-height: 1.15; letter-spacing: -.01em; margin: 0; font-weight: 400; }
+.label { font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+
+/* ---------- layout */
+.split { display: grid; grid-template-columns: 1fr 2fr; min-height: calc(100vh - 64px); }
+.split > .l { padding: 48px var(--gutter); border-right: 1px solid var(--mist); }
+.split > .r { padding: 48px var(--gutter); }
+.sticky { position: sticky; top: 96px; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } .split > .l { border-right: 0; padding-bottom: 8px; } .sticky { position: static; } }
+
+/* ---------- controls */
+.btn { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 56px; padding: 0 20px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; text-transform: uppercase; letter-spacing: .02em; text-align: left; text-decoration: none; transition: background .25s var(--ease), color .25s var(--ease); }
+.btn::after { content: "→"; }
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.dark { background: var(--ink); color: var(--paper); }
+.btn.dark:hover { background: var(--ink-soft); }
+.btn.sun { background: var(--sun); border-color: var(--sun); }
+.btn.sun:hover { background: var(--sun-deep); color: var(--ink); }
+.btn.plain::after { content: ""; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn + .btn { margin-top: 12px; }
+.link { background: none; border: 0; padding: 0; cursor: pointer; text-transform: uppercase; letter-spacing: .02em; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+.field { display: block; margin-bottom: 28px; }
+.field input, .field select, .uline { width: 100%; background: transparent; border: 0; border-bottom: 1px solid currentColor; padding: 14px 0; outline: none; font-size: 17px; }
+.field input:focus, .uline:focus { border-bottom-width: 2px; }
+textarea.big { width: 100%; border: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); background: transparent; padding: 20px 0; outline: none; resize: vertical; font-size: clamp(20px, 2vw, 28px); line-height: 1.35; min-height: 260px; }
+textarea.letter { width: 100%; border: 1px solid var(--ink); background: var(--paper); padding: 20px; outline: none; resize: vertical; font-size: 16px; line-height: 1.6; min-height: 380px; }
+.sq { width: 14px; height: 14px; background: var(--ink); display: inline-block; flex: none; }
+.sq.ok { background: var(--ok); } .sq.warn { background: var(--warn); } .sq.high { background: var(--high); } .sq.sun { background: var(--sun-deep); } .sq.ghost { background: var(--mist); }
+
+/* ---------- rows */
+.rows { border-top: 1px solid var(--ink); }
+.rowi { display: grid; grid-template-columns: 24px 1fr auto; gap: 16px; align-items: start; padding: 20px 0; border-bottom: 1px solid var(--ink); }
+.rowi .sq { margin-top: 6px; }
+.rowi .sub { color: var(--muted); font-size: 14px; margin-top: 4px; text-transform: uppercase; letter-spacing: .02em; }
+.rowi.click { cursor: pointer; transition: background .2s; }
+.rowi.click:hover { background: var(--bone); }
+.quote { font-size: 17px; margin-top: 6px; }
+
+/* ---------- landing */
+.hero { padding: 40px var(--gutter) 64px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: end; }
+.hero p { font-size: 22px; line-height: 1.3; text-align: right; margin: 0; }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .hero p { text-align: left; } }
+.auth { display: grid; grid-template-columns: 1fr 2fr; min-height: 640px; }
+.auth .l { display: flex; flex-direction: column; justify-content: space-between; padding: 40px var(--gutter); }
+.auth .l .big { font-size: clamp(40px, 4vw, 64px); line-height: 1; letter-spacing: -.02em; }
+.auth .r { background: var(--ink); color: var(--paper); padding: 72px clamp(24px, 5vw, 72px); }
+.auth form { max-width: 700px; }
+.auth .btn { border-color: var(--paper); }
+.auth .err { color: #ff9a8a; min-height: 20px; margin-bottom: 12px; }
+@media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth .l { min-height: 260px; } }
+.how { display: grid; grid-template-columns: 1fr 2fr; padding: 80px var(--gutter); gap: 24px; background: var(--mist); }
+.how .rowi { grid-template-columns: 60px 1fr; }
+@media (max-width: 900px) { .how { grid-template-columns: 1fr; } }
+
+/* ---------- stepper */
+.steps { display: flex; gap: 0; border-bottom: 1px solid var(--ink); }
+.steps span { flex: 1; padding: 14px var(--gutter); text-transform: uppercase; font-size: 13px; letter-spacing: .03em; color: var(--muted); border-right: 1px solid var(--mist); }
+.steps span.on { color: var(--ink); background: var(--sun); }
+.steps span.done { color: var(--ink); }
+
+/* ---------- speak */
+.stage { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px var(--gutter); gap: 18px; }
+.recbtn { width: min(520px, 100%); min-height: 96px; background: var(--ink); color: var(--paper); border: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; cursor: pointer; font-size: 18px; text-transform: uppercase; letter-spacing: .03em; }
+.recbtn .dot { width: 12px; height: 12px; background: var(--paper); }
+.recbtn.on .dot { background: var(--high); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2 } }
+.recbtn:disabled { cursor: wait; }
+.stage .hint { background: var(--paper); padding: 8px 14px; font-size: 14px; text-transform: uppercase; letter-spacing: .03em; }
+.meter { display: flex; gap: 4px; height: 40px; align-items: center; }
+.meter i { width: 6px; height: 4px; background: var(--ink); transition: height .08s; }
+
+/* ---------- drafting overlay */
+.working { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 40px var(--gutter); }
+.working .box { background: var(--ink); color: var(--paper); padding: 36px; width: min(560px, 100%); }
+.working .s { display: flex; align-items: center; gap: 14px; padding: 10px 0; color: #8f9199; text-transform: uppercase; letter-spacing: .02em; font-size: 14px; }
+.working .s .sq { background: var(--ink-soft); }
+.working .s.on { color: var(--paper); } .working .s.on .sq { background: var(--sun); animation: blink 1s steps(2) infinite; }
+.working .s.done { color: var(--paper); } .working .s.done .sq { background: var(--sun); }
+
+/* ---------- draft */
+.kv { border-top: 1px solid var(--ink); margin-top: 28px; }
+.kv div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--mist); }
+.kv b { font-weight: 400; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding-top: 2px; }
+.hear { background: var(--ink); color: var(--paper); padding: 20px; margin-top: 28px; }
+.hear p { margin: 14px 0 0; font-size: 17px; line-height: 1.45; }
+.hear .btn { border-color: var(--paper); min-height: 48px; }
+.hear .btn::after { content: "▶"; font-size: 12px; }
+.hear .btn.playing::after { content: "■"; }
+.sec { margin-top: 56px; }
+.sec h3 { margin-bottom: 20px; }
+.qrow { display: grid; grid-template-columns: 1fr 56px; gap: 12px; align-items: end; padding: 18px 0; border-bottom: 1px solid var(--ink); }
+.qrow .q { font-size: 18px; } .qrow .qe { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.qrow input { grid-column: 1; }
+.mic { width: 56px; height: 48px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; display: grid; place-items: center; }
+.mic i { width: 12px; height: 12px; background: var(--ink); }
+.mic.on { background: var(--ink); } .mic.on i { background: var(--high); animation: blink 1s steps(2) infinite; }
+.wc { font-size: 13px; color: var(--muted); text-align: right; margin-top: 6px; text-transform: uppercase; }
+
+.toast { position: fixed; left: var(--gutter); bottom: var(--gutter); background: var(--ink); color: var(--paper); padding: 14px 18px; text-transform: uppercase; letter-spacing: .02em; font-size: 14px; opacity: 0; transform: translateY(12px); transition: .3s var(--ease); pointer-events: none; z-index: 50; max-width: calc(100% - 2 * var(--gutter)); }
+.toast.show { opacity: 1; transform: none; }
+.fade { animation: fade .45s var(--ease); }
+@keyframes fade { from { opacity: 0; transform: translateY(10px) } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="ribs-idle" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.004" numOctaves="1" seed="7" result="n">
+      <animate attributeName="baseFrequency" dur="10s" values="0.012 0.004;0.018 0.006;0.012 0.004" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="ribs-live" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.004" numOctaves="1" seed="7" result="n">
+      <animate attributeName="baseFrequency" dur="2.4s" values="0.012 0.004;0.028 0.01;0.012 0.004" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<header class="bar">
+  <a class="logo" href="#/"><i></i>SUNWAI <small>सुनवाई</small></a>
+  <nav id="nav" class="hidden">
+    <a href="#/speak" data-r="speak">New complaint</a>
+    <a href="#/grievances" data-r="grievances">My grievances</a>
+    <a href="#/logout">Log out</a>
+  </nav>
+</header>
+<div id="banner" class="banner hidden"><span>Demo account · real Sarvam models, shared sample login</span><a href="#/logout">Exit demo</a></div>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const LANGS = { "hi-IN": "Hindi", "bn-IN": "Bengali", "ta-IN": "Tamil", "te-IN": "Telugu", "gu-IN": "Gujarati", "kn-IN": "Kannada", "ml-IN": "Malayalam", "mr-IN": "Marathi", "pa-IN": "Punjabi", "od-IN": "Odia", "en-IN": "English", "as-IN": "Assamese", "ur-IN": "Urdu" };
+const TTS_LANGS = ["hi-IN", "bn-IN", "ta-IN", "te-IN", "gu-IN", "kn-IN", "ml-IN", "mr-IN", "pa-IN", "od-IN", "en-IN"];
+const STATUSES = ["Drafted", "Submitted", "Under review", "Resolved", "Closed"];
+const STATUS_SQ = { Drafted: "ghost", Submitted: "sun", "Under review": "warn", Resolved: "ok", Closed: "" };
+const SAMPLES = [
+  { label: "Water supply", script: "हिंदी", lang: "hi-IN", text: "मैं लखनऊ के इंदिरा नगर सेक्टर 14 में रहती हूँ। पिछले बारह दिनों से हमारी गली में नल में पानी नहीं आ रहा है। हमने 3 तारीख को जल संस्थान के दफ़्तर जाकर शिकायत दी थी, लेकिन अभी तक कोई नहीं आया। घर में बुज़ुर्ग माँ हैं और हमें रोज़ पानी का टैंकर 600 रुपये में खरीदना पड़ रहा है।" },
+  { label: "Streetlights", script: "தமிழ்", lang: "ta-IN", text: "எங்கள் தெருவில் மூன்று வாரங்களாக தெரு விளக்குகள் எரியவில்லை. இரவில் பெண்களும் குழந்தைகளும் நடக்க பயமாக இருக்கிறது. கடந்த வாரம் ஒரு பைக் விபத்தும் நடந்தது. மாநகராட்சி ஹெல்ப்லைனுக்கு இரண்டு முறை அழைத்தோம், யாரும் வரவில்லை." },
+  { label: "Pension delay", script: "বাংলা", lang: "bn-IN", text: "আমার বাবা অবসরপ্রাপ্ত রেল কর্মচারী। গত চার মাস ধরে ওঁর পেনশন অ্যাকাউন্টে আসছে না। ব্যাংকে গেলে বলে রেলওয়ে অফিস থেকে টাকা পাঠানো হয়নি, আর রেলওয়ে অফিস বলে ব্যাংকের সমস্যা। ওঁর ওষুধের খরচ চালাতে খুব কষ্ট হচ্ছে।" },
+];
+
+const S = { user: null, native: "", english: "", lang: "en-IN", draft: null, audio: null, items: [] };
+
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2800); }
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  const b = await r.json().catch(() => ({}));
+  if (r.status === 401 && !path.startsWith("/api/login")) { S.user = null; location.hash = "#/"; }
+  if (!r.ok) throw new Error(b.detail || `Request failed (${r.status})`);
+  return b;
+}
+const send = (path, data, method = "POST") => api(path, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data ?? {}) });
+const go = h => { location.hash = h; };
+const langName = c => LANGS[c] || c;
+
+// ---------------------------------------------------------------- audio capture (16 kHz mono WAV)
+class Recorder {
+  constructor(onLevel) { this.onLevel = onLevel; }
+  async start() {
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    this.ctx = new AudioContext();
+    const src = this.ctx.createMediaStreamSource(this.stream);
+    this.node = this.ctx.createScriptProcessor(4096, 1, 1); this.buffers = [];
+    this.node.onaudioprocess = e => {
+      const d = e.inputBuffer.getChannelData(0); this.buffers.push(new Float32Array(d));
+      let s = 0; for (let i = 0; i < d.length; i += 16) s += d[i] * d[i];
+      this.onLevel?.(Math.min(1, Math.sqrt(s / (d.length / 16)) * 6));
+    };
+    src.connect(this.node); this.node.connect(this.ctx.destination);
+  }
+  async stop() {
+    this.node.disconnect(); this.stream.getTracks().forEach(t => t.stop());
+    const rate = this.ctx.sampleRate; await this.ctx.close();
+    const all = new Float32Array(this.buffers.reduce((n, b) => n + b.length, 0)); let o = 0;
+    for (const b of this.buffers) { all.set(b, o); o += b.length; }
+    return encodeWav(downsample(all, rate, 16000), 16000);
+  }
+}
+function downsample(buf, from, to) {
+  if (from === to) return buf;
+  const ratio = from / to, out = new Float32Array(Math.floor(buf.length / ratio));
+  for (let i = 0; i < out.length; i++) {
+    const s = Math.floor(i * ratio), e = Math.min(buf.length, Math.floor((i + 1) * ratio));
+    let sum = 0; for (let j = s; j < e; j++) sum += buf[j]; out[i] = sum / Math.max(1, e - s);
+  }
+  return out;
+}
+function encodeWav(x, rate) {
+  const b = new ArrayBuffer(44 + x.length * 2), v = new DataView(b);
+  const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + x.length * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, "data"); v.setUint32(40, x.length * 2, true);
+  for (let i = 0; i < x.length; i++) { const s = Math.max(-1, Math.min(1, x[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  return new Blob([b], { type: "audio/wav" });
+}
+function transcribe(blob) { const fd = new FormData(); fd.append("file", blob, "speech.wav"); return api("/api/transcribe", { method: "POST", body: fd }); }
+
+// ---------------------------------------------------------------- screens
+const app = $("#app");
+const steps = n => `<div class="steps">${["01 Speak", "02 Check", "03 Draft"].map((s, i) => `<span class="${i === n ? "on" : i < n ? "done" : ""}">${s}</span>`).join("")}</div>`;
+
+function viewLanding() {
+  app.innerHTML = `
+  <section class="hero fade">
+    <h1 class="display">Your complaint,<br>heard.</h1>
+    <p>Speak a complaint in your own language.<br>Get a formal grievance, backed by your own words.</p>
+  </section>
+  <section class="auth">
+    <div class="l ribs">
+      <div class="big">सुनवाई<br><span style="font-size:.45em">n. a hearing</span></div>
+      <div class="label">Speak in 22 languages. Get one formal grievance.</div>
+    </div>
+    <div class="r">
+      <form id="authForm" autocomplete="on">
+        <label class="field hidden" id="nameField"><span class="label">Name</span><input name="name" autocomplete="name"></label>
+        <label class="field"><span class="label">Email *</span><input name="email" type="email" required autocomplete="email"></label>
+        <label class="field"><span class="label">Password *</span><input name="password" type="password" required minlength="6" autocomplete="current-password"></label>
+        <div class="err" id="authErr"></div>
+        <button class="btn" id="authBtn" type="submit">Log in</button>
+        <button class="btn sun" id="demoBtn" type="button">Try the demo, no account needed</button>
+        <div style="margin-top:36px"><button class="link" style="color:var(--paper)" type="button" id="toggleAuth">New here? Create an account</button></div>
+        <div style="margin-top:28px"><a class="link" style="color:var(--paper)" href="#how" onclick="event.preventDefault();$('#how').scrollIntoView({behavior:'smooth'})">How it works</a></div>
+      </form>
+    </div>
+  </section>
+  <section class="how" id="how">
+    <h2>How it<br>works.</h2>
+    <div class="rows">
+      <div class="rowi"><span class="label">01</span><div><h3>Speak it.</h3><div class="sub">Saaras v3 transcribes and translates your voice, in any of 22 Indian languages</div></div></div>
+      <div class="rowi"><span class="label">02</span><div><h3>We draft it.</h3><div class="sub">Sarvam-105B writes a CPGRAMS-ready grievance. Every fact is cited to your own words</div></div></div>
+      <div class="rowi"><span class="label">03</span><div><h3>Hear it back.</h3><div class="sub">Bulbul v3 reads the summary to you in your language before you file</div></div></div>
+      <div class="rowi"><span class="label">04</span><div><h3>Track it.</h3><div class="sub">Add your registration number and follow each grievance to resolution</div></div></div>
+    </div>
+  </section>`;
+  let signup = false;
+  $("#toggleAuth").onclick = () => {
+    signup = !signup;
+    $("#nameField").classList.toggle("hidden", !signup);
+    $("#authBtn").textContent = signup ? "Create account" : "Log in";
+    $("#toggleAuth").textContent = signup ? "Have an account? Log in" : "New here? Create an account";
+  };
+  $("#authForm").onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    try { await send(signup ? "/api/signup" : "/api/login", Object.fromEntries(f)); await boot("#/speak"); }
+    catch (err) { $("#authErr").textContent = err.message; }
+  };
+  $("#demoBtn").onclick = async () => { await send("/api/demo"); await boot("#/speak"); };
+}
+
+let rec = null, timer = null;
+function viewSpeak() {
+  app.innerHTML = `${steps(0)}
+  <section class="split fade">
+    <div class="l">
+      <div class="sticky">
+        <h2>Tell us what<br>happened.</h2>
+        <p class="muted" style="margin:16px 0 40px;font-size:17px">Speak the way you'd explain it to a neighbour: what's wrong, where, since when, and who you already told. Any Indian language, up to two minutes.</p>
+        <div class="label" style="margin-bottom:12px">Or try a sample</div>
+        <div class="rows" id="samples">${SAMPLES.map((s, i) => `
+          <div class="rowi click" data-i="${i}"><span class="sq sun"></span><div>${esc(s.label)}<div class="sub">${esc(s.script)}</div></div><span>→</span></div>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="r" style="padding:0">
+      <div class="ribs stage" id="stage">
+        <button class="recbtn" id="recBtn"><span id="recLabel">Tap to speak</span><span class="dot"></span></button>
+        <div class="meter hidden" id="meter">${"<i></i>".repeat(28)}</div>
+        <div class="hint" id="hint">Your voice stays on this device until you send it</div>
+      </div>
+    </div>
+  </section>`;
+  $("#samples").onclick = e => {
+    const r = e.target.closest("[data-i]"); if (!r) return;
+    const s = SAMPLES[r.dataset.i]; Object.assign(S, { native: s.text, english: "", lang: s.lang, draft: null }); go("#/check");
+  };
+  $("#recBtn").onclick = async () => {
+    if (rec) return finish();
+    try {
+      rec = new Recorder(l => $$("#meter i").forEach(b => b.style.height = `${4 + l * 36 * (.4 + Math.random() * .6)}px`));
+      await rec.start();
+    } catch { rec = null; return toast("Microphone unavailable. Allow mic access or pick a sample."); }
+    const t0 = Date.now();
+    $("#stage").classList.add("live"); $("#recBtn").classList.add("on"); $("#meter").classList.remove("hidden");
+    $("#hint").textContent = "Tap again when you're done";
+    timer = setInterval(() => {
+      const s = Math.floor((Date.now() - t0) / 1000);
+      $("#recLabel").textContent = `Listening… ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+      if (s >= 120) finish();
+    }, 250);
+  };
+  async function finish() {
+    clearInterval(timer); const r = rec; rec = null;
+    $("#recBtn").disabled = true; $("#recBtn").classList.remove("on"); $("#meter").classList.add("hidden");
+    $("#recLabel").textContent = "Transcribing with Saaras…"; $("#hint").textContent = "Detecting your language";
+    try {
+      const t = await transcribe(await r.stop());
+      if (!t.native) throw new Error("Didn't catch that. Try speaking a little longer.");
+      Object.assign(S, { native: t.native, english: t.english, lang: t.language_code, draft: null });
+      go("#/check");
+    } catch (e) {
+      toast(e.message); $("#stage").classList.remove("live"); $("#recBtn").disabled = false;
+      $("#recLabel").textContent = "Tap to speak"; $("#hint").textContent = "Try again";
+    }
+  }
+}
+
+function viewCheck() {
+  if (!S.native) return go("#/speak");
+  app.innerHTML = `${steps(1)}
+  <section class="split fade">
+    <div class="l"><div class="sticky">
+      <h2>Is this what<br>you said?</h2>
+      <div class="kv"><div><b>Language</b><span>${esc(langName(S.lang))}</span></div></div>
+      <p class="muted" style="margin:20px 0 32px;font-size:17px">Fix any word we got wrong. The draft will only use what's written here.</p>
+      <a class="btn plain" href="#/speak">← Record again</a>
+    </div></div>
+    <div class="r">
+      <textarea class="big" id="native" aria-label="Your complaint">${esc(S.native)}</textarea>
+      ${S.english ? `<div class="label" style="margin-top:24px">In English</div><p style="font-size:17px;margin:8px 0 0" id="english">${esc(S.english)}</p>` : ""}
+      <div style="margin-top:36px;max-width:520px"><button class="btn dark" id="draftBtn">Draft my grievance</button></div>
+    </div>
+  </section>`;
+  $("#native").oninput = e => { S.native = e.target.value; S.english = ""; $("#english")?.remove(); };
+  $("#draftBtn").onclick = () => runDraft([]);
+}
+
+async function runDraft(answers) {
+  if (!S.native.trim()) return toast("Your complaint is empty.");
+  const stages = ["Reading your complaint", "Writing the grievance with Sarvam-105B", "Checking every fact against your words"];
+  const paint = n => app.innerHTML = `${steps(2)}<section class="working ribs live"><div class="box">
+    <div class="label" style="margin-bottom:18px;color:var(--sun)">Drafting</div>
+    ${stages.map((s, i) => `<div class="s ${i < n ? "done" : i === n ? "on" : ""}"><span class="sq"></span>${s}</div>`).join("")}</div></section>`;
+  paint(0);
+  const t1 = setTimeout(() => paint(1), 900), t2 = setTimeout(() => paint(2), 5500);
+  try {
+    S.draft = await send("/api/draft", { native: S.native, english: S.english, language_code: S.lang, answers });
+    S.audio = null;
+    if (location.hash === "#/draft") viewDraft(); else go("#/draft");
+  } catch (e) { toast(e.message); go(S.draft ? "#/draft" : "#/check"); if (location.hash === "#/check") viewCheck(); }
+  finally { clearTimeout(t1); clearTimeout(t2); }
+}
+
+function viewDraft() {
+  const d = S.draft; if (!d) return go(S.native ? "#/check" : "#/speak");
+  const urg = { High: "high", Medium: "warn", Low: "ok" }[d.urgency] || "";
+  const canHear = TTS_LANGS.includes(S.lang);
+  app.innerHTML = `${steps(2)}
+  <section class="split fade">
+    <div class="l"><div class="sticky">
+      <div class="label muted" style="margin-bottom:12px">${esc(d.category)} · ${esc(d.jurisdiction)}</div>
+      <h2 style="font-size:clamp(30px,2.8vw,42px)">${esc(d.title)}</h2>
+      <div class="kv">
+        <div><b>Urgency</b><span style="display:flex;gap:10px;align-items:center"><span class="sq ${urg}"></span>${esc(d.urgency)}</span></div>
+        ${d.suggested_authority ? `<div><b>Send to</b><span>${esc(d.suggested_authority)}</span></div>` : ""}
+        ${d.location ? `<div><b>Where</b><span>${esc(d.location)}</span></div>` : ""}
+        ${d.incident_period ? `<div><b>Since</b><span>${esc(d.incident_period)}</span></div>` : ""}
+        ${d.prior_attempts ? `<div><b>Tried</b><span>${esc(d.prior_attempts)}</span></div>` : ""}
+      </div>
+      ${d.summary_native ? `<div class="hear"><button class="btn plain" id="hearBtn" style="background:transparent;color:var(--paper)">Hear it in ${esc(canHear ? langName(S.lang) : "English")}</button><p>${esc(d.summary_native)}</p></div>` : ""}
+      <div style="margin-top:28px">
+        <button class="btn dark" id="saveBtn">Save &amp; track</button>
+        <button class="btn" id="copyBtn">Copy text</button>
+        <a class="btn" href="https://pgportal.gov.in" target="_blank" rel="noopener">File on CPGRAMS</a>
+      </div>
+    </div></div>
+    <div class="r">
+      <h3 style="margin-bottom:20px">The letter.</h3>
+      <textarea class="letter" id="letter">${esc(d.grievance_text)}</textarea>
+      <div class="wc" id="wc"></div>
+
+      <div class="sec"><h3>Relief sought.</h3><p style="font-size:19px;margin:0">${esc(d.relief_sought)}</p></div>
+
+      <div class="sec"><h3>Your words, as evidence.</h3>
+        <div class="rows">${(d.facts || []).map(f => `
+          <div class="rowi"><span class="sq ${f.verified ? "ok" : "warn"}"></span>
+            <div>${esc(f.fact)}${f.quote ? `<div class="quote">“${esc(f.quote)}”</div>` : ""}</div>
+            <span class="label" style="color:${f.verified ? "var(--ok)" : "var(--warn)"}">${f.verified ? "Found" : "Check"}</span>
+          </div>`).join("") || `<div class="rowi"><span class="sq ghost"></span><div>No facts extracted.</div><span></span></div>`}
+        </div>
+      </div>
+
+      ${(d.missing_info || []).length ? `
+      <div class="sec"><h3>Make it stronger.</h3>
+        <p class="muted" style="margin:-8px 0 12px">Optional. Type or speak your answers, then update the draft.</p>
+        <div id="qs">${d.missing_info.map(q => `
+          <div class="qrow">
+            <div><div class="q">${esc(q.question_native || q.question_en)}</div>${q.question_native && q.question_en ? `<div class="qe">${esc(q.question_en)}</div>` : ""}
+              <input class="uline" data-q="${esc(q.question_en || q.question_native)}" placeholder="Your answer"></div>
+            <button class="mic" aria-label="Answer by voice"><i></i></button>
+          </div>`).join("")}</div>
+        <div style="margin-top:24px;max-width:520px"><button class="btn dark" id="redraftBtn">Update the draft</button></div>
+      </div>` : ""}
+    </div>
+  </section>`;
+  const wc = () => { const v = $("#letter").value; $("#wc").textContent = `${v.trim().split(/\s+/).filter(Boolean).length} words · ${v.length} characters`; };
+  $("#letter").oninput = () => { d.grievance_text = $("#letter").value; wc(); }; wc();
+  $("#copyBtn").onclick = async () => { await navigator.clipboard.writeText(`Subject: ${d.title}\n\n${d.grievance_text}\n\nRelief sought: ${d.relief_sought}`); toast("Copied. Paste it into CPGRAMS."); };
+  $("#saveBtn").onclick = async () => {
+    try { const g = await send("/api/grievances", { transcript: S.native, language_code: S.lang, draft: d }); toast(`Saved as ${g.id}`); go(`#/g/${g.id}`); }
+    catch (e) { toast(e.message); }
+  };
+  $("#hearBtn") && ($("#hearBtn").onclick = async () => {
+    const b = $("#hearBtn");
+    if (S.audio && !S.audio.paused) { S.audio.pause(); b.classList.remove("playing"); return; }
+    if (!S.audio) {
+      b.disabled = true;
+      try { const { audio } = await send("/api/tts", { text: d.summary_native, language_code: S.lang }); S.audio = new Audio("data:audio/wav;base64," + audio); }
+      catch (e) { toast(e.message); return; } finally { b.disabled = false; }
+      S.audio.onended = () => $("#hearBtn")?.classList.remove("playing");
+    }
+    S.audio.play(); b.classList.add("playing");
+  });
+  let qrec = null;
+  $$(".mic").forEach(btn => btn.onclick = async () => {
+    const input = btn.previousElementSibling.querySelector("input");
+    if (qrec?.btn === btn) {
+      const r = qrec.rec; qrec = null; btn.classList.remove("on"); input.placeholder = "Transcribing…";
+      try { input.value = (await transcribe(await r.stop())).native; } catch (e) { toast(e.message); }
+      input.placeholder = "Your answer"; return;
+    }
+    if (qrec) return toast("Finish the current answer first.");
+    try { const r = new Recorder(); await r.start(); qrec = { rec: r, btn }; btn.classList.add("on"); input.placeholder = "Listening… tap the square to stop"; }
+    catch { toast("Microphone unavailable. Type instead."); }
+  });
+  $("#redraftBtn") && ($("#redraftBtn").onclick = () => {
+    const answers = $$("#qs input").filter(i => i.value.trim()).map(i => ({ question: i.dataset.q, answer: i.value.trim() }));
+    if (!answers.length) return toast("Answer at least one question first.");
+    runDraft(answers);
+  });
+}
+
+async function viewList() {
+  S.items = await api("/api/grievances");
+  app.innerHTML = `
+  <section class="split fade">
+    <div class="l"><div class="sticky">
+      <h2>Your<br>grievances.</h2>
+      <p class="muted" style="margin:16px 0 32px;font-size:17px">${S.items.length} on file. Add the CPGRAMS registration number after you submit, then follow each one to resolution.</p>
+      <a class="btn dark" href="#/speak">New complaint</a>
+    </div></div>
+    <div class="r"><div class="rows">
+      ${S.items.map(g => `
+        <div class="rowi click" data-id="${esc(g.id)}"><span class="sq ${STATUS_SQ[g.status] ?? ""}"></span>
+          <div><h3 style="font-size:22px">${esc(g.draft.title)}</h3><div class="sub">${esc(g.id)} · ${esc(g.draft.category)} · ${new Date(g.created_at).toLocaleDateString()}</div></div>
+          <span class="label">${esc(g.status)}</span></div>`).join("") ||
+        `<div class="rowi"><span class="sq ghost"></span><div><h3 style="font-size:22px">Nothing yet.</h3><div class="sub">Drafts you save will appear here</div></div><span></span></div>`}
+    </div></div>
+  </section>`;
+  $$("[data-id]").forEach(r => r.onclick = () => go(`#/g/${r.dataset.id}`));
+}
+
+async function viewDetail(id) {
+  if (!S.items.find(x => x.id === id)) S.items = await api("/api/grievances");
+  const g = S.items.find(x => x.id === id); if (!g) return go("#/grievances");
+  app.innerHTML = `
+  <section class="split fade">
+    <div class="l"><div class="sticky">
+      <a class="link" href="#/grievances">← All grievances</a>
+      <div class="label muted" style="margin:28px 0 12px">${esc(g.id)} · ${esc(g.draft.category)}</div>
+      <h2 style="font-size:clamp(30px,2.8vw,42px)">${esc(g.draft.title)}</h2>
+      <div style="margin-top:36px">
+        <label class="field"><span class="label">Status</span>
+          <select id="st">${STATUSES.map(s => `<option ${s === g.status ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+        <label class="field"><span class="label">CPGRAMS registration no.</span>
+          <input id="reg" value="${esc(g.reg_no)}" placeholder="e.g. DARPG/E/2026/0012345"></label>
+        <button class="btn dark" id="upd">Update</button>
+        <a class="btn" href="https://pgportal.gov.in" target="_blank" rel="noopener">Check on CPGRAMS</a>
+        <div style="margin-top:28px"><button class="link" id="del">Delete this grievance</button></div>
+      </div>
+    </div></div>
+    <div class="r">
+      <h3 style="margin-bottom:20px">Timeline.</h3>
+      <div class="rows">${g.history.slice().reverse().map(h => `
+        <div class="rowi"><span class="sq ${STATUS_SQ[h.status] ?? ""}"></span><div>${esc(h.status)}${h.note ? `<div class="sub">${esc(h.note)}</div>` : ""}</div><span class="label muted">${new Date(h.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</span></div>`).join("")}
+      </div>
+      <div class="sec"><h3 style="margin-bottom:20px">The letter.</h3>
+        <div style="white-space:pre-wrap;font-size:16px;line-height:1.6;border:1px solid var(--ink);padding:20px">${esc(g.draft.grievance_text)}</div>
+      </div>
+      <div class="sec"><h3 style="margin-bottom:12px">What you said.</h3><p style="font-size:19px;margin:0">${esc(g.transcript)}</p></div>
+    </div>
+  </section>`;
+  $("#upd").onclick = async () => {
+    const patch = {}; const st = $("#st").value, reg = $("#reg").value.trim();
+    if (st !== g.status) patch.status = st; if (reg !== g.reg_no) patch.reg_no = reg;
+    if (!Object.keys(patch).length) return toast("Nothing changed.");
+    try { const u = await send(`/api/grievances/${encodeURIComponent(id)}`, patch, "PATCH"); S.items = S.items.map(x => x.id === id ? u : x); toast("Updated"); viewDetail(id); }
+    catch (e) { toast(e.message); }
+  };
+  $("#del").onclick = async () => {
+    if (!confirm(`Delete ${id}?`)) return;
+    await api(`/api/grievances/${encodeURIComponent(id)}`, { method: "DELETE" }); S.items = []; go("#/grievances");
+  };
+}
+
+// ---------------------------------------------------------------- router
+async function route() {
+  const h = location.hash || "#/";
+  if (h === "#/logout") { await send("/api/logout").catch(() => {}); S.user = null; return go("#/"); }
+  if (rec) { try { await rec.stop(); } catch {} rec = null; clearInterval(timer); }
+  S.audio?.pause();
+  const authed = !!S.user;
+  $("#nav").classList.toggle("hidden", !authed);
+  $("#banner").classList.toggle("hidden", !S.user?.demo);
+  const key = h.split("/")[1] || "";
+  $$("#nav a").forEach(a => a.classList.toggle("on", a.dataset.r === key || (a.dataset.r === "speak" && ["check", "draft"].includes(key))));
+  if (!authed) return viewLanding();
+  window.scrollTo(0, 0);
+  if (key === "" ) return go("#/speak");
+  if (key === "speak") return viewSpeak();
+  if (key === "check") return viewCheck();
+  if (key === "draft") return viewDraft();
+  if (key === "grievances") return viewList().catch(e => toast(e.message));
+  if (key === "g") return viewDetail(decodeURIComponent(h.split("/")[2] || "")).catch(e => toast(e.message));
+  go("#/speak");
+}
+async function boot(next) {
+  try { S.user = await api("/api/me"); } catch { S.user = null; }
+  if (next && location.hash !== next) location.hash = next; else route();
+}
+window.addEventListener("hashchange", route);
+boot();
+</script>
+</body>
+</html>
