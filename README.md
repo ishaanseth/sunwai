@@ -2,6 +2,8 @@
 
 *n. a hearing.* Speak a civic complaint in any Indian language and get a formal, CPGRAMS-ready grievance. Every fact in the draft is cited back to your own words.
 
+**Live:** https://sunwai-eight.vercel.app (choose *Try the demo*)
+
 Built for Sarvam Campus '26 (Idea #46, "Grievance Drafter").
 
 ## How it works
@@ -43,3 +45,7 @@ Landing/login → **01 Speak** (a live voiceprint follows your voice) → **02 C
 - Audio is recorded in the browser as 16 kHz mono WAV, so no ffmpeg is needed.
 - `reasoning_effort` is set to `None` for drafting. With reasoning on, the thinking tokens used up the output budget and the JSON came back empty.
 - Bulbul supports 11 languages. For other languages (e.g. Assamese, Urdu), the read-back falls back to English.
+
+## Deploy
+
+Deploys to Vercel as-is (Vercel detects the FastAPI `app` in `app.py`). Set `SARVAM_API_KEY` and `SESSION_SECRET` as environment variables. Sessions are signed cookies. On Vercel the SQLite file lives in `/tmp`, so saved grievances are best-effort, per instance; use a hosted database for real use.

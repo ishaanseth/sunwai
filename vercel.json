@@ -1,4 +1,0 @@
-{
-  "functions": { "api/index.py": { "maxDuration": 60, "includeFiles": "{app.py,static/**}" } },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
-}
