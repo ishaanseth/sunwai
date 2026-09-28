@@ -38,7 +38,7 @@ Then open http://127.0.0.1:8000 and choose **Try the demo**, or create an accoun
 
 ## Screens
 
-Landing/login → **01 Speak** (a live voiceprint follows your voice) → **02 Check** (edit the transcript) → **03 Draft** (letter on paper, evidence, read-back, follow-up questions; a FILED stamp lands when you save) → **My grievances** → grievance detail (status, registration no., timeline). Light and dark themes (follows your system, with a toggle)..
+Landing/login → **01 Speak** (a live voiceprint follows your voice) → **02 Check** (edit the transcript) → **03 Draft** (letter on paper, evidence, read-back, follow-up questions; a FILED stamp lands when you save) → **My grievances** → grievance detail (status, registration no., timeline). Light and dark themes (follows your system, with a toggle).
 
 ## Notes
 
